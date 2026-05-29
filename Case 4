@@ -1,9 +1,0 @@
-```sql
-SELECT 
-    month(start_date),
-    count(DISTINCT customer_id) as "monthly distribution"
-FROM subscriptions
-JOIN plans USING (plan_id)
-WHERE plan_id = 0
-GROUP BY month(start_date);
-```
