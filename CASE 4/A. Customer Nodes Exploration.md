@@ -3,3 +3,4 @@
 SELECT COUNT( DISTINCT node_id )
 FROM Customer_Nodes
 ```
+
