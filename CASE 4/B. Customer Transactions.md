@@ -43,3 +43,48 @@ GROUP BY month
 ```
 <img width="1016" height="222" alt="Screenshot 2026-05-29 at 6 45 47 PM" src="https://github.com/user-attachments/assets/5f453287-3082-4a52-8c92-02f687fc2860" />
 
+## Q4
+```sql
+WITH months AS (
+    SELECT generate_series(1,12) AS mon
+),
+customers AS (
+    SELECT DISTINCT customer_id
+    FROM customer_transactions
+),
+monthly_txn AS (
+    SELECT
+        customer_id,
+        EXTRACT(MONTH FROM txn_date) AS mon,
+        SUM(
+            CASE
+                WHEN txn_type = 'deposit'
+                    THEN txn_amount
+                ELSE -txn_amount
+            END
+        ) AS net_txn
+    FROM customer_transactions
+    GROUP BY customer_id, mon
+),
+all_months AS (
+    SELECT
+        c.customer_id,
+        m.mon
+    FROM customers c
+    CROSS JOIN months m
+)
+SELECT
+    a.customer_id,
+    a.mon,
+    SUM(COALESCE(t.net_txn,0))
+        OVER (
+            PARTITION BY a.customer_id
+            ORDER BY a.mon
+        ) AS closing_balance
+FROM all_months a
+LEFT JOIN monthly_txn t
+    ON a.customer_id = t.customer_id
+   AND a.mon = t.mon
+ORDER BY a.customer_id, a.mon;
+```
+
